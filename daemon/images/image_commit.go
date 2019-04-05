@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/containerd/containerd/archive/compression"
 	"github.com/containerd/containerd/content"
 	cerrdefs "github.com/containerd/containerd/errdefs"
@@ -30,6 +32,7 @@ import (
 
 // CommitImage creates a new image from a commit config
 func (i *ImageService) CommitImage(ctx context.Context, c backend.CommitConfig) (ocispec.Descriptor, error) {
+	logrus.Infof("CommitConfig -> %+v", c)
 	ctx, done, err := i.client.WithLease(ctx)
 	if err != nil {
 		return ocispec.Descriptor{}, err
@@ -160,12 +163,12 @@ func (i *ImageService) CommitImage(ctx context.Context, c backend.CommitConfig) 
 		Config:        desc,
 		Layers:        layers,
 	}
-
+	logrus.Infof("new manifest m-> %+v", m)
 	mb, err := json.Marshal(m)
 	if err != nil {
 		return ocispec.Descriptor{}, errors.Wrap(err, "failed to marshal committed image")
 	}
-
+	logrus.Infof("len of new m -> %v", int64(len(mb)))
 	desc = ocispec.Descriptor{
 		MediaType: images.MediaTypeDockerSchema2Manifest,
 		Digest:    digest.FromBytes(mb),

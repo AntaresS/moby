@@ -107,6 +107,8 @@ func (b *Builder) commitContainer(dispatchState *dispatchState, id string, conta
 	}
 
 	imageID, err := b.docker.CommitBuildStep(dispatchState.ctx, commitCfg)
+	logrus.Infof("commitContainer %s", imageID)
+	// todo: replace with desc
 	dispatchState.imageID = string(imageID)
 	return err
 }
@@ -131,7 +133,7 @@ func (b *Builder) exportImage(state *dispatchState, layer builder.RWLayer, paren
 	if err != nil {
 		return errors.Wrapf(err, "failed to export image")
 	}
-
+	logrus.Infof("exportImage changed imageID %s", exportedImage.Digest.String())
 	state.imageID = exportedImage.Digest.String()
 	b.imageSources.Add(newImageMount(NewContainerdImage(exportedImage, b.containerdCli, copyRunConfig(state.runConfig)), newLayer))
 	return nil
@@ -155,7 +157,7 @@ func (b *Builder) performCopy(req dispatchRequest, inst copyInstruction) error {
 	if err != nil || hit {
 		return err
 	}
-
+	logrus.Infof("performCopy -> %s", state.imageID)
 	imageMount, err := b.imageSources.Get(state.imageID, true, req.builder.platform)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get destination image %q", state.imageID)
@@ -409,7 +411,7 @@ func (b *Builder) probeCache(dispatchState *dispatchState, runConfig *container.
 		return false, err
 	}
 	fmt.Fprint(b.Stdout, " ---> Using cache\n")
-
+	logrus.Infof("probeCahce changed imageID to %s", cachedID)
 	dispatchState.imageID = cachedID
 	return true, nil
 }
@@ -432,6 +434,7 @@ func (b *Builder) create(runConfig *container.Config) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	logrus.Infof("Create ran with no error")
 	// TODO: could this be moved into containerManager.Create() ?
 	for _, warning := range container.Warnings {
 		fmt.Fprintf(b.Stdout, " ---> [Warning] %s\n", warning)

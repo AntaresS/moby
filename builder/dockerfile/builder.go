@@ -336,6 +336,7 @@ func (b *Builder) dispatchDockerfileWithCancellation(parseResult []instructions.
 		if err := initializeStage(dispatchRequest, &stage); err != nil {
 			return nil, err
 		}
+		logrus.Infof("outer loop")
 		dispatchRequest.state.updateRunConfig()
 		fmt.Fprintf(b.Stdout, " ---> %s\n", stringid.TruncateID(dispatchRequest.state.imageID))
 		for _, cmd := range stage.Commands {
@@ -350,10 +351,11 @@ func (b *Builder) dispatchDockerfileWithCancellation(parseResult []instructions.
 			}
 
 			currentCommandIndex = printCommand(b.Stdout, currentCommandIndex, totalCommands, cmd)
-
+			logrus.Infof("dispatching cmd %s", cmd.Name())
 			if err := dispatch(dispatchRequest, cmd); err != nil {
 				return nil, err
 			}
+			logrus.Infof("updating RunConfig")
 			dispatchRequest.state.updateRunConfig()
 			fmt.Fprintf(b.Stdout, " ---> %s\n", stringid.TruncateID(dispatchRequest.state.imageID))
 

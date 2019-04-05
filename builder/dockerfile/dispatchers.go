@@ -14,6 +14,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/containerd/containerd/platforms"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types/strslice"
@@ -145,6 +147,7 @@ func (d *dispatchRequest) getImageMount(imageRefOrID string) (*imageMount, error
 		imageRefOrID = stage.Image
 		localOnly = true
 	}
+	logrus.Infof("getImageMount called -> %s", imageRefOrID)
 	return d.builder.imageSources.Get(imageRefOrID, localOnly, d.builder.platform)
 }
 
@@ -267,6 +270,7 @@ func (d *dispatchRequest) getImageOrStage(name string, platform *specs.Platform)
 		}
 		return builder.Image(imageImage), nil
 	}
+	logrus.Infof("getImageOrStage -> %s", name)
 	imageMount, err := d.builder.imageSources.Get(name, localOnly, platform)
 	if err != nil {
 		return nil, err
@@ -367,11 +371,12 @@ func dispatchRun(d dispatchRequest, c *instructions.RunCommand) error {
 		withEntrypointOverride(saveCmd, strslice.StrSlice{""}),
 		withoutHealthcheck())
 
+	logrus.Infof("calling create from dispatchRun")
 	cID, err := d.builder.create(runConfig)
 	if err != nil {
 		return err
 	}
-
+	logrus.Infof("Run")
 	if err := d.builder.containerManager.Run(d.builder.clientCtx, cID, d.builder.Stdout, d.builder.Stderr); err != nil {
 		if err, ok := err.(*statusCodeError); ok {
 			// TODO: change error type, because jsonmessage.JSONError assumes HTTP
@@ -394,7 +399,7 @@ func dispatchRun(d dispatchRequest, c *instructions.RunCommand) error {
 	if d.state.operatingSystem == "windows" {
 		runConfigForCacheProbe.ArgsEscaped = stateRunConfig.ArgsEscaped
 	}
-
+	logrus.Infof("dispatcher calling into commitContainer")
 	return d.builder.commitContainer(d.state, cID, runConfigForCacheProbe)
 }
 

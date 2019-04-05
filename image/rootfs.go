@@ -49,5 +49,6 @@ func (r *RootFS) ChainID() layer.ChainID {
 		logrus.Warnf("Layer type is unsupported on this platform. DiffIDs: '%v'", r.DiffIDs)
 		return ""
 	}
+	logrus.Infof("RootFS ChainID -> %v", r)
 	return layer.CreateChainID(r.DiffIDs)
 }

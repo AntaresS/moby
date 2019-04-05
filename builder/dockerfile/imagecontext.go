@@ -143,7 +143,10 @@ func (ci *containerdImage) RunConfig() *container.Config {
 }
 
 func (ci *containerdImage) OperatingSystem() string {
-	return ci.desc.Platform.OS
+	if ci.desc.Platform != nil {
+		return ci.desc.Platform.OS
+	}
+	return runtime.GOOS
 }
 
 func (ci *containerdImage) MarshalJSON() ([]byte, error) {

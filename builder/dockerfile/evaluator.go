@@ -26,6 +26,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/builder"
 	"github.com/docker/docker/errdefs"
@@ -106,10 +108,11 @@ func dispatch(d dispatchRequest, cmd instructions.Command) (err error) {
 
 // dispatchState is a data object which is modified by dispatchers
 type dispatchState struct {
-	ctx             context.Context
-	runConfig       *container.Config
-	maintainer      string
-	cmdSet          bool
+	ctx        context.Context
+	runConfig  *container.Config
+	maintainer string
+	cmdSet     bool
+	// todo: replace with desc
 	imageID         string
 	baseImage       builder.Image
 	stageName       string
@@ -206,6 +209,7 @@ func newDispatchRequest(builder *Builder, escapeToken rune, source builder.Sourc
 }
 
 func (s *dispatchState) updateRunConfig() {
+	logrus.Infof("current -> %s new -> %s", s.runConfig.Image, s.imageID)
 	s.runConfig.Image = s.imageID
 }
 
@@ -216,6 +220,7 @@ func (s *dispatchState) hasFromImage() bool {
 
 func (s *dispatchState) beginStage(stageName string, image builder.Image) error {
 	s.stageName = stageName
+	logrus.Infof("beginStage changed imageID %s", image.ImageID())
 	s.imageID = image.ImageID()
 	s.operatingSystem = image.OperatingSystem()
 	if s.operatingSystem == "" { // In case it isn't set
